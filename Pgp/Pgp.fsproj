@@ -6,6 +6,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Constants\SymmetricKeyAlgorithms.fs" />
+    <Compile Include="Constants\SignatureTypes.fs" />
+    <Compile Include="Constants\PublicKeyAlgorithms.fs" />
+    <Compile Include="Constants\HashAlgorithms.fs" />
+    <Compile Include="Common\PgpDateTime.fs" />
+    <Compile Include="Common\StringToKeySpecifiers.fs" />
+    <Compile Include="Common\MPInteger.fs" />
+    <Compile Include="Common\Boolean.fs" />
+    <Compile Include="Common\KeyId.fs" />
+    <Compile Include="KeyMaterial\PublicKey.fs" />
+    <Compile Include="KeyMaterial\StringToKey.fs" />
+    <Compile Include="KeyMaterial\SecretKey.fs" />
+    <Compile Include="SymmetricEncryption.fs" />
+    <Compile Include="PacketHeader.fs" />
+    <Compile Include="OnePassSignature.fs" />
+    <Compile Include="PublicKeyEncryptedSessionKey.fs" />
+    <Compile Include="DecryptionState.fs" />
+    <Compile Include="SecretKeyRing.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
