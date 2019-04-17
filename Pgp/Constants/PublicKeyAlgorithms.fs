@@ -1,22 +1,22 @@
-﻿module Constants.PublicKeyAlgorithms
+﻿namespace Constants.PublicKeyAlgorithms
 
 open System.IO
 
-type PublicKeyAlgorithm = UnknownPublicKeyAlgorithm
-                        | RsaEncryptOrSign
-                        | RsaEncryptOnly
-                        | RsaSignOnly
-                        | ElgamalEncryptOnly
-                        | DsaSignOnly
-                        | ReservedEllipticCurve
-                        | ReservedEcdsa
-                        | ReservedFormerlyElgamalEncryptOrSign
-                        | ReservedDiffieHellman
-                        | PrivateOrExperimentalPublicKeyAlgorithm
-
-                        
-let read (input : Stream) : PublicKeyAlgorithm =
-    match (input.ReadByte()) with
+type internal PublicKeyAlgorithm = 
+    | UnknownPublicKeyAlgorithm
+    | RsaEncryptOrSign
+    | RsaEncryptOnly
+    | RsaSignOnly
+    | ElgamalEncryptOnly
+    | DsaSignOnly
+    | ReservedEllipticCurve
+    | ReservedEcdsa
+    | ReservedFormerlyElgamalEncryptOrSign
+    | ReservedDiffieHellman
+    | PrivateOrExperimentalPublicKeyAlgorithm
+with
+    static member Read (input : Stream) : PublicKeyAlgorithm =
+        match (input.ReadByte()) with
         | 1 -> RsaEncryptOrSign
         | 2 -> RsaEncryptOnly
         | 3 -> RsaSignOnly

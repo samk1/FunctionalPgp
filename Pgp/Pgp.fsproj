@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,9 +21,9 @@
     <Compile Include="PacketHeader.fs" />
     <Compile Include="OnePassSignature.fs" />
     <Compile Include="PublicKeyEncryptedSessionKey.fs" />
+    <Compile Include="Message.fs" />
     <Compile Include="DecryptionState.fs" />
     <Compile Include="SecretKeyRing.fs" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
 
 </Project>

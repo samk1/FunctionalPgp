@@ -1,8 +1,5 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/Pgp/bin/Debug/netcoreapp2.1
-/Pgp/obj
-/.vs
-/Pgp.Tests
+﻿**/bin/
+**/obj/
+**/.vs/
+/Pgp/.ionide
+/Pgp.sln.DotSettings.user

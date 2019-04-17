@@ -1,16 +1,14 @@
-﻿module Common.PgpDateTime
+﻿namespace Common.PgpDateTime
 
 open System.IO
 
-type PgpDateTime = {
-    Epoch : uint32
-}   with
-    static member read (input : Stream) : PgpDateTime =
+type internal PgpDateTime = 
+    { 
+        Epoch : uint32 
+    } with
+    static member Read (input : Stream) : PgpDateTime =
         let reader = new BinaryReader (input)
-        {
-            Epoch = reader.ReadUInt32 ()
-        }
-    static member initial : PgpDateTime =
-        {
-            Epoch = uint32 0
-        }
+        { Epoch = reader.ReadUInt32 () }
+
+    static member Initial : PgpDateTime =
+        { Epoch = uint32 0 }

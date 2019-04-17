@@ -1,26 +1,27 @@
-﻿module Constants.SignatureTypes
+﻿namespace Constants.SignatureTypes
 
 open System.IO
 
-type SignatureType = UnknownSignatureType
-                    | SignatureOfABinaryDocument
-                    | SignatureOfACanonicalTextDocument
-                    | StandaloneSignature
-                    | GenericCertificationOfAUserIdAndPublicKeyPacket
-                    | PersonaCertificationOfAUserIdAndPublicKeyPacket
-                    | CasualCertificationOfAUserIdAndPublicKeyPacket
-                    | PositiveCertificationOfAUserIdAndPublicKeyPacket
-                    | SubkeyBindingSignature
-                    | PrimaryKeyBindingSignature
-                    | SignatureDirectlyOnAKey
-                    | KeyRevocationSignature
-                    | SubkeyRevocationSignature
-                    | CertificationRevocationSignature
-                    | TimestampSignature
-                    | ThirdPartyConfirmationSignature
-
-let read (input : Stream) : SignatureType =
-    match (input.ReadByte()) with
+type internal SignatureType = 
+    | UnknownSignatureType
+    | SignatureOfABinaryDocument
+    | SignatureOfACanonicalTextDocument
+    | StandaloneSignature
+    | GenericCertificationOfAUserIdAndPublicKeyPacket
+    | PersonaCertificationOfAUserIdAndPublicKeyPacket
+    | CasualCertificationOfAUserIdAndPublicKeyPacket
+    | PositiveCertificationOfAUserIdAndPublicKeyPacket
+    | SubkeyBindingSignature
+    | PrimaryKeyBindingSignature
+    | SignatureDirectlyOnAKey
+    | KeyRevocationSignature
+    | SubkeyRevocationSignature
+    | CertificationRevocationSignature
+    | TimestampSignature
+    | ThirdPartyConfirmationSignature
+with
+    static member Read (input : Stream) : SignatureType =
+        match (input.ReadByte()) with
         | 0x00 -> SignatureOfABinaryDocument
         | 0x01 -> SignatureOfACanonicalTextDocument
         | 0x02 -> StandaloneSignature

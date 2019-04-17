@@ -1,9 +1,13 @@
-﻿module Common.MPInteger
+﻿namespace Common.MPInteger
 
 open System.IO
 
-type MPInteger = { Length: int; Bytes : byte[] } with
-    static member read (input : Stream) : MPInteger =
+type internal MPInteger = 
+    { 
+        Length: int; 
+        Bytes : byte[] 
+    } with
+    static member Read (input : Stream) : MPInteger =
         let (firstOctet, secondOctet) = (input.ReadByte(), input.ReadByte())
         let mpiLength = (firstOctet <<< 8) + secondOctet
         let mpiSize = (mpiLength + 7) / 8

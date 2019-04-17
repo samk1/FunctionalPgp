@@ -1,31 +1,29 @@
-﻿module PublicKeyEncryptedSessionKey
+﻿namespace Pgp
 
 open System.IO
 open Constants
-open Common
+open Common.KeyId
+open Constants.PublicKeyAlgorithms
 
-type PublicKeyEncryptedSessionKey = {
-    PublicKeyEncryptedSessionKeyVersion : int;
-    EncryptingKeyId : byte[];
-    PublicKeyAlgorithm : PublicKeyAlgorithms.PublicKeyAlgorithm;
-    EncryptedSessionKey : byte[];
-}
-
-let initial = {
-    PublicKeyEncryptedSessionKeyVersion = 0;
-    EncryptingKeyId = KeyId.initial;
-    PublicKeyAlgorithm = PublicKeyAlgorithms.UnknownPublicKeyAlgorithm;
-    EncryptedSessionKey = Array.empty<byte>
-}
-
-let read (input : Stream) (length : int) : PublicKeyEncryptedSessionKey =
-    let versionNumber = (input.ReadByte())
-    let keyId = KeyId.read input
-    let publicKeyAlgorithm = PublicKeyAlgorithms.read input
-    input.Seek((int64 (length - 10)), SeekOrigin.Current) |> ignore
+type internal PublicKeyEncryptedSessionKey = 
     {
-        initial with
-            PublicKeyEncryptedSessionKeyVersion = versionNumber
-            EncryptingKeyId = keyId
-            PublicKeyAlgorithm = publicKeyAlgorithm
-    }
+        PublicKeyEncryptedSessionKeyVersion : int;
+        EncryptingKeyId : byte[];
+        PublicKeyAlgorithm : PublicKeyAlgorithms.PublicKeyAlgorithm;
+        EncryptedSessionKey : byte[];
+    } with
+    static member Initial = 
+        { PublicKeyEncryptedSessionKeyVersion = 0;
+          EncryptingKeyId = KeyId.initial;
+          PublicKeyAlgorithm = PublicKeyAlgorithms.UnknownPublicKeyAlgorithm;
+          EncryptedSessionKey = Array.empty<byte> }
+
+    static member Read (input : Stream) (length : int) : PublicKeyEncryptedSessionKey =
+        let versionNumber = (input.ReadByte())
+        let keyId = KeyId.read input
+        let publicKeyAlgorithm = PublicKeyAlgorithm.Read input
+        input.Seek((int64 (length - 10)), SeekOrigin.Current) |> ignore
+        { PublicKeyEncryptedSessionKey.Initial with
+                PublicKeyEncryptedSessionKeyVersion = versionNumber
+                EncryptingKeyId = keyId
+                PublicKeyAlgorithm = publicKeyAlgorithm }
