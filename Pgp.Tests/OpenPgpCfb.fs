@@ -23,7 +23,7 @@ module OpenPgpCfbTests =
         let outputBuffer = Array.zeroCreate 16
         let cfb = initCfbBlockCypher ()
 
-        cfb.encryptBlock inputBuffer 0 outputBuffer 0
+        cfb.EncryptBlock inputBuffer 0 outputBuffer 0
 
         let expected = [| 0xeeuy; 0x61uy; 0xc3uy; 0x5cuy; 0x67uy; 0x02uy; 0xa4uy; 0xb3uy; 0x00uy; 0xc4uy; 0x72uy; 0xd1uy; 0x42uy; 0xbcuy; 0xa3uy; 0xa6uy; |]
         Assert.Equal<byte[]>("", expected, outputBuffer)
@@ -33,8 +33,8 @@ module OpenPgpCfbTests =
         let outputBuffer = Array.zeroCreate 16
         let cfb = initCfbBlockCypher ()
 
-        cfb.encryptBlock inputBuffer 0 outputBuffer 0
-        cfb.encryptBlock inputBuffer 0 outputBuffer 0
+        cfb.EncryptBlock inputBuffer 0 outputBuffer 0
+        cfb.EncryptBlock inputBuffer 0 outputBuffer 0
 
         let expected = [| 0xd5uy; 0x78uy; 0xf1uy; 0xa6uy; 0x41uy; 0xb1uy; 0x06uy; 0x97uy; 0xdduy; 0x41uy; 0x42uy; 0x03uy; 0x35uy; 0x97uy; 0x13uy; 0xf7uy; |]
         Assert.Equal<byte[]>("", expected, outputBuffer)
@@ -64,8 +64,8 @@ module OpenPgpCfbTests =
 
             let watch = Stopwatch.StartNew ()
 
-            cfb.encryptBlock inputBuffer offset outputBuffer 0
-            cfb.encryptBlock inputBuffer (offset + 16) outputBuffer 0
+            cfb.EncryptBlock inputBuffer offset outputBuffer 0
+            cfb.EncryptBlock inputBuffer (offset + 16) outputBuffer 0
             watch.Stop()
             count <- count + 1L
             ticks <- ticks + watch.ElapsedTicks
