@@ -1,1 +1,1 @@
-module internal Program = let [<EntryPoint>] main _ = 0
+module Program = let [<EntryPoint>] main _ = 0

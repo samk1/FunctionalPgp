@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,11 +17,11 @@
     <Compile Include="KeyMaterial\PublicKey.fs" />
     <Compile Include="KeyMaterial\StringToKey.fs" />
     <Compile Include="KeyMaterial\SecretKey.fs" />
+    <Compile Include="CypherFeedbackMode.fs" />
     <Compile Include="SymmetricEncryption.fs" />
     <Compile Include="PacketHeader.fs" />
     <Compile Include="OnePassSignature.fs" />
     <Compile Include="PublicKeyEncryptedSessionKey.fs" />
-    <Compile Include="Message.fs" />
     <Compile Include="DecryptionState.fs" />
     <Compile Include="SecretKeyRing.fs" />
   </ItemGroup>
