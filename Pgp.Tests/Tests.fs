@@ -59,7 +59,8 @@ let ``AES should encrypt using ECB mode as expected`` () =
 [<Fact>]
 let ``Stress test CFB`` () =
     let random32MB = Array.zeroCreate (1024 * 1024 * 32)
-    RandomNumberGenerator.Fill(new Span<byte>(random32MB))
+    let rng = RandomNumberGenerator.Create()
+    rng.GetBytes(random32MB)    
 
     let mutable count = 0L
     let mutable ticks : int64 = 0L
