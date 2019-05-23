@@ -8,4 +8,7 @@ module Tests =
         testCase "Encrypt first block" OpenPgpCfbTests.``Encrypt first block in OpenPGP CFB Mode``
         testCase "Encrypt second block" OpenPgpCfbTests.``Encrypt second block in OpenPGP CFB Mode``
         testCase "Encrypt third block" OpenPgpCfbTests.``Encrypt third block in OpenPGP CFB Mode``
+        testCase "Decrypt first block" OpenPgpCfbTests.``Decrypt first block in OpenPGP CFB Mode``
+        testCase "Decrypt second block" OpenPgpCfbTests.``Decrypt second block in OpenPGP CFB Mode``
+        testCase "Decrypt third block" OpenPgpCfbTests.``Decrypt third block in OpenPGP CFB Mode``
     ]

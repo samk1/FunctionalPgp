@@ -35,7 +35,6 @@ type OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
 
     member this.EncryptBlock (inBuf: byte[]) (inOff: int) (outBuf: byte[]) (outOff: int) = 
         if count > blockSize then
-            
             outBuf.[outOff] <- inBuf.[inOff] ^^^ fre.[blockSize - 2]
             fr.[blockSize - 2] <- outBuf.[outOff]
 
@@ -65,16 +64,54 @@ type OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
             for i = 0 to (blockSize - 3) do
                 fr.[i] <- fre.[i] ^^^ inBuf.[inOff + 2 + i]
                 outBuf.[i + 2] <- fr.[i]
-            ()
+            count <- count + blockSize
         else if count = 0 then
             transform fr fre
 
             for i = 0 to (blockSize - 1) do
                 fr.[i] <- fre.[i] ^^^ inBuf.[inOff + i]
                 outBuf.[outOff + i] <- fr.[i]
-            ()
-        count <- count + blockSize
+            count <- blockSize
 
+    member this.DecryptBlock (inBuf: byte[]) (inOff: int) (outBuf: byte[]) (outOff: int) = 
+        if count > blockSize then
+            fr.[blockSize - 2] <- inBuf.[inOff]
+            outBuf.[outOff] <- inBuf.[inOff] ^^^ fre.[blockSize - 2]
+
+            fr.[blockSize - 1] <- inBuf.[inOff + 1]
+            outBuf.[outOff + 1] <- inBuf.[inOff + 1] ^^^ fre.[blockSize - 1]
+
+            transform fr fre
+
+            for i = 2 to (blockSize - 1) do
+                fr.[i - 2] <- inBuf.[inOff + i]
+                outBuf.[outOff + i] <- inBuf.[inOff + i] ^^^ fre.[i - 2]
+            ()
+        else if count = blockSize then
+            transform fr fre
+
+            outBuf.[outOff] <- inBuf.[inOff] ^^^ fre.[0]
+            outBuf.[outOff + 1] <- inBuf.[inOff + 1] ^^^ fre.[1]
+
+            for i = 2 to (blockSize - 1) do
+                fr.[i - 2] <- fr.[i]
+
+            fr.[blockSize - 2] <- inBuf.[inOff]
+            fr.[blockSize - 1] <- inBuf.[inOff + 1]
+
+            transform fr fre
+
+            for i = 2 to (blockSize - 1) do
+                fr.[i - 2] <- inBuf.[inOff + i]
+                outBuf.[outOff + i] <- inBuf.[inOff + i] ^^^ fre.[i - 2]
+            count <- blockSize + count            
+        else if count = 0 then
+            transform fr fre
+
+            for i = 0 to (blockSize - 1) do
+                fr.[i] <- inBuf.[inOff + i]
+                outBuf.[i] <- inBuf.[inOff + i] ^^^ fre.[i]
+            count <- blockSize            
 
     interface ICryptoTransform with
         member this.CanReuseTransform: bool = 
