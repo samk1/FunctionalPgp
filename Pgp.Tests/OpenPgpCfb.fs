@@ -39,6 +39,18 @@ module OpenPgpCfbTests =
         let expected = [| 0xd5uy; 0x78uy; 0xf1uy; 0xa6uy; 0x41uy; 0xb1uy; 0x06uy; 0x97uy; 0xdduy; 0x41uy; 0x42uy; 0x03uy; 0x35uy; 0x97uy; 0x13uy; 0xf7uy; |]
         Assert.Equal<byte[]>("", expected, outputBuffer)
 
+    let ``Encrypt third block in OpenPGP CFB Mode`` () =
+        let inputBuffer = Array.create 16 0x88uy
+        let outputBuffer = Array.zeroCreate 16
+        let cfb = initCfbBlockCypher ()
+
+        cfb.EncryptBlock inputBuffer 0 outputBuffer 0
+        cfb.EncryptBlock inputBuffer 0 outputBuffer 0
+        cfb.EncryptBlock inputBuffer 0 outputBuffer 0
+
+        let expected = [| 0xc6uy; 0x5auy; 0xb8uy; 0xbauy; 0xefuy; 0x87uy; 0x3fuy; 0x66uy; 0xa4uy; 0xc1uy; 0xa0uy; 0x29uy; 0x43uy; 0xd2uy; 0x5cuy; 0xa3uy |]
+        Assert.Equal<byte[]>("", expected, outputBuffer)            
+
     let ``AES should encrypt using ECB mode as expected`` () =
         let key = Array.zeroCreate 16
         let inputBuffer = Array.zeroCreate 16
