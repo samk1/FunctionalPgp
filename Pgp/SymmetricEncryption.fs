@@ -4,6 +4,7 @@ open System.IO
 open System.Security.Cryptography
 
 open Constants.SymmetricKeyAlgorithms
+open CypherFeedbackMode
 
 exception internal EncryptionNotImplemented
 
@@ -39,21 +40,8 @@ module internal SymmetricEncryption =
         plainBlock
 
     let initCfbStream (algorithm: SymmetricAlgorithm) (input: Stream) : Stream =
-        let transform = algorithm.CreateDecryptor()
-
-        let blockSize = transform.InputBlockSize
-        let feedBackSize = algorithm.FeedbackSize / 8
-
-        let firstPlainBlock = readBlock input transform blockSize
-
-        let secondPlainBlock = readBlock input transform blockSize
-
-        let thirdPlainBlock = readBlock input transform blockSize
-    
-        let fourthPlainBlock = readBlock input transform blockSize
-
+        let transform = new OpenPgpCfbBlockCipher (algorithm, CryptoStreamMode.Read)
         upcast new CryptoStream(input, transform, CryptoStreamMode.Read)
-
 
     let decrypt (algorithmType : SymmetricKeyAlgorithmType) (key : byte[]) (iv : byte[]) (input : Stream) : Stream =
         match algorithmType with

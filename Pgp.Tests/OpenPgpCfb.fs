@@ -87,6 +87,10 @@ module OpenPgpCfbTests =
         let expected = Array.create 16 0x99uy
         Assert.Equal<byte[]>("", expected, outputBuffer)
 
+    let ``Encrypt 1000 bytes of data`` () =
+        let data = TestData.Encrypted1000Bytes
+        ()    
+
     let ``AES should encrypt using ECB mode as expected`` () =
         let key = Array.zeroCreate 16
         let inputBuffer = Array.zeroCreate 16
@@ -98,6 +102,7 @@ module OpenPgpCfbTests =
         
         aes.CreateEncryptor().TransformBlock (inputBuffer, 0, 16, outputBuffer, 0) |> ignore
         Trace.WriteLine(sprintf "outputBuffer: %A" outputBuffer)
+        ()
 
     let ``Stress test CFB`` () =
         let random32MB = Array.zeroCreate (1024 * 1024 * 32)

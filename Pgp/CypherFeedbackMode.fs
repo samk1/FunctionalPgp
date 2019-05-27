@@ -2,6 +2,7 @@
 
 open System.Security.Cryptography
 open System.Diagnostics
+open System
 
 
 
@@ -28,6 +29,8 @@ type OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
     let blockSize = cipher.BlockSize / 8
     let fr = Array.zeroCreate blockSize
     let fre = Array.zeroCreate blockSize
+    let store = Array.zeroCreate blockSize
+    let mutable storeOff = 0
 
     let transform = Cfb.createTransform cipher mode blockSize
 
@@ -111,7 +114,27 @@ type OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
             for i = 0 to (blockSize - 1) do
                 fr.[i] <- inBuf.[inOff + i]
                 outBuf.[i] <- inBuf.[inOff + i] ^^^ fre.[i]
-            count <- blockSize            
+            count <- blockSize
+
+    member this.Transform =
+        match mode with
+        | CryptoStreamMode.Read -> this.DecryptBlock
+        | CryptoStreamMode.Write -> this.EncryptBlock
+        | _ -> raise (InvalidOperationException ())
+
+    member this.TransformBlockInternal inputBuffer inputOffset inputCount outputBuffer outputOffset =
+        if inputCount + storeOff > blockSize then            
+            raise (InvalidOperationException ())
+
+        if storeOff = 0 then
+            this.Transform inputBuffer inputOffset store 0
+
+        Array.blit store storeOff outputBuffer outputOffset inputCount
+        
+        match storeOff + inputCount with
+        | size when size = blockSize -> storeOff <- 0
+        | _ -> storeOff <- inputCount + storeOff
+        inputCount
 
     interface ICryptoTransform with
         member this.CanReuseTransform: bool = 
@@ -124,7 +147,9 @@ type OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
             cipher.BlockSize
         member this.OutputBlockSize: int = 
             cipher.BlockSize
-        member this.TransformFinalBlock(inputBuffer: byte [], inputOffset: int, inputCount: int): byte [] = 
-            raise (System.NotImplementedException())
         member this.TransformBlock (inputBuffer: byte[], inputOffset: int, inputCount: int, outputBuffer: byte[], outputOffset: int) =
-            raise (System.NotImplementedException())
+            this.TransformBlockInternal inputBuffer inputOffset inputCount outputBuffer outputOffset                
+        member this.TransformFinalBlock(inputBuffer: byte [], inputOffset: int, inputCount: int): byte [] = 
+            let outputBuffer = Array.zeroCreate blockSize
+            this.TransformBlockInternal inputBuffer inputOffset inputCount outputBuffer 0 |> ignore
+            outputBuffer

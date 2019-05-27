@@ -15,6 +15,7 @@ type SecretKeyRingReader(file : Stream) =
         Passphrase = null
         SecretKey = SecretKey.initial
     }
+    
     static let handler 
         state 
         { PacketTag = packetTag; Length = length } : SecretKeyRingState =
@@ -22,7 +23,7 @@ type SecretKeyRingReader(file : Stream) =
         let packetHandler = 
             match packetTag with
             | SecretKeyPacket -> 
-                fun state length -> 
+                fun state _ -> 
                     { state with SecretKey = SecretKey.Read state.Input "test123" SymmetricEncryption.decrypt }
             | _ -> 
                 fun state length -> state.Input.Seek(int64 length, SeekOrigin.Current) |> ignore; state
