@@ -23,11 +23,10 @@ module internal SymmetricEncryption =
         | Aes256 -> createAes 256
         | _ -> raise EncryptionNotImplemented
 
-    let initAlgorithm (algorithmType : SymmetricKeyAlgorithmType) (key : byte[]) (iv : byte[]) : SymmetricAlgorithm =
+    let initAlgorithm (algorithmType : SymmetricKeyAlgorithmType) (key : byte[]) : SymmetricAlgorithm =
         let algorithm = createAlgorithm algorithmType
-        algorithm.IV <- iv
         algorithm.Key <- key
-        algorithm.Mode <- CipherMode.CFB
+        algorithm.Mode <- CipherMode.ECB
         algorithm.FeedbackSize <- algorithm.BlockSize
         algorithm.Padding <- PaddingMode.None
         algorithm
@@ -39,13 +38,17 @@ module internal SymmetricEncryption =
         transform.TransformBlock(cypherBlock, 0, length, plainBlock, 0) |> ignore
         plainBlock
 
-    let initCfbStream (algorithm: SymmetricAlgorithm) (input: Stream) : Stream =
-        let transform = new OpenPgpCfbBlockCipher (algorithm, CryptoStreamMode.Read)
-        upcast new CryptoStream(input, transform, CryptoStreamMode.Read)
+    let initCfbStream (input: Stream) (mode: CryptoStreamMode) (algorithm: SymmetricAlgorithm) : Stream =
+        let transform = new OpenPgpCfbBlockCipher (algorithm, mode)
+        upcast new CryptoStream(input, transform, mode)
 
-    let decrypt (algorithmType : SymmetricKeyAlgorithmType) (key : byte[]) (iv : byte[]) (input : Stream) : Stream =
+    let decrypt (algorithmType : SymmetricKeyAlgorithmType) (key : byte[]) (input : Stream) : Stream =
         match algorithmType with
         | Plaintext -> input
-        | algorithmType -> 
-            let algorithm = initAlgorithm algorithmType key iv
-            initCfbStream algorithm input
+        | algorithmType -> initAlgorithm algorithmType key |> initCfbStream input CryptoStreamMode.Read
+
+    let encrypt (algorithmType: SymmetricKeyAlgorithmType) (key : byte[]) (input: Stream) : Stream =
+        match algorithmType with
+        | Plaintext -> input
+        | algorithmType -> initAlgorithm algorithmType key |> initCfbStream input CryptoStreamMode.Write
+

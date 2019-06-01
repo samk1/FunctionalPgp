@@ -82,7 +82,7 @@ type internal SecretKey =
     static member Read 
         (input : Stream) 
         (passPhrase : string) 
-        (decrypt : SymmetricKeyAlgorithmType -> byte[] -> byte[] -> Stream -> Stream) : SecretKey =
+        (decrypt : SymmetricKeyAlgorithmType -> byte[] -> Stream -> Stream) : SecretKey =
         let publicKey = PublicKey.Read input
         let stringToKeyUsageConvention = input.ReadByte()
         match stringToKeyUsageConvention with
@@ -101,7 +101,7 @@ type internal SecretKey =
             let stringToKeySpecifier = StringToKeySpecifier.read input
             let key = StringToKeyAlgorithms.computeStringToKey passPhrase stringToKeySpecifier symmetricKeyAlgorithm
             let iv = SecretKeyElementReaders.readIv symmetricKeyAlgorithm input
-            let decryptedInput = decrypt symmetricKeyAlgorithm key iv input
+            let decryptedInput = decrypt symmetricKeyAlgorithm key input
             let keyParameters = SecretKeyParameters.read publicKey.PublicKeyAlgorithm decryptedInput
             { PublicKey = publicKey
               StringToKeyUsageConvention = stringToKeyUsageConvention

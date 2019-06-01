@@ -4,39 +4,18 @@ open System.Security.Cryptography
 open System.Diagnostics
 open System
 
-
-
-module Cfb =
-    let dumpBuf (buf: byte[]) (name: string) : unit =
-        Trace.WriteLine(sprintf "%s: %A" name buf)
-
-    let dump args name : unit =
-        Trace.Write(sprintf "%s: " name)
-        List.map (sprintf " %A " >> Trace.Write) args |> ignore
-
-    let createTransform (cipher: SymmetricAlgorithm)  (mode: CryptoStreamMode) (blockSize: int) =
-        match mode with
-        | CryptoStreamMode.Write -> 
-            let encryptor = cipher.CreateEncryptor()
-            fun inBuf outBuf -> encryptor.TransformBlock(inBuf, 0, blockSize, outBuf, 0) |> ignore
-        | CryptoStreamMode.Read -> 
-            let decryptor = cipher.CreateDecryptor()
-            fun inBuf outBuf -> decryptor.TransformBlock(inBuf, 0, blockSize, outBuf, 0) |> ignore
-        | _ -> invalidOp "Invalid CryptoStreamMode"
-    
-
-type OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
+type internal OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
     let blockSize = cipher.BlockSize / 8
     let fr = Array.zeroCreate blockSize
     let fre = Array.zeroCreate blockSize
-    let store = Array.zeroCreate blockSize
-    let mutable storeOff = 0
 
-    let transform = Cfb.createTransform cipher mode blockSize
+    let encryptor = cipher.CreateEncryptor()
+    let encryptFr () = 
+        encryptor.TransformBlock(fr, 0, blockSize, fre, 0) |> ignore
 
     let mutable count = 0
 
-    member this.EncryptBlock (inBuf: byte[]) (inOff: int) (outBuf: byte[]) (outOff: int) = 
+    let encryptBlock (inBuf: byte[]) (inOff: int) (outBuf: byte[]) (outOff: int) = 
         if count > blockSize then
             outBuf.[outOff] <- inBuf.[inOff] ^^^ fre.[blockSize - 2]
             fr.[blockSize - 2] <- outBuf.[outOff]
@@ -44,14 +23,14 @@ type OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
             outBuf.[outOff + 1] <- inBuf.[inOff + 1] ^^^ fre.[blockSize - 1]
             fr.[blockSize - 1] <- outBuf.[outOff + 1]
 
-            transform fr fre
+            encryptFr ()
 
             for i = 2 to (blockSize - 1) do
                 outBuf.[outOff + i] <- inBuf.[inOff + i] ^^^ fre.[i - 2]
                 fre.[i - 2] <- outBuf.[outOff + i]
             ()
         else if count = blockSize then
-            transform fr fre
+            encryptFr ()
 
             outBuf.[outOff] <- inBuf.[inOff] ^^^ fre.[0]
             outBuf.[outOff + 1] <- inBuf.[inOff + 1] ^^^ fre.[1]
@@ -62,21 +41,21 @@ type OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
             fr.[blockSize - 2] <- outBuf.[outOff]
             fr.[blockSize - 1] <- outBuf.[outOff + 1]
 
-            transform fr fre
+            encryptFr ()
 
             for i = 0 to (blockSize - 3) do
                 fr.[i] <- fre.[i] ^^^ inBuf.[inOff + 2 + i]
                 outBuf.[i + 2] <- fr.[i]
             count <- count + blockSize
         else if count = 0 then
-            transform fr fre
+            encryptFr ()
 
             for i = 0 to (blockSize - 1) do
                 fr.[i] <- fre.[i] ^^^ inBuf.[inOff + i]
                 outBuf.[outOff + i] <- fr.[i]
             count <- blockSize
 
-    member this.DecryptBlock (inBuf: byte[]) (inOff: int) (outBuf: byte[]) (outOff: int) = 
+    let decryptBlock (inBuf: byte[]) (inOff: int) (outBuf: byte[]) (outOff: int) = 
         if count > blockSize then
             fr.[blockSize - 2] <- inBuf.[inOff]
             outBuf.[outOff] <- inBuf.[inOff] ^^^ fre.[blockSize - 2]
@@ -84,14 +63,14 @@ type OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
             fr.[blockSize - 1] <- inBuf.[inOff + 1]
             outBuf.[outOff + 1] <- inBuf.[inOff + 1] ^^^ fre.[blockSize - 1]
 
-            transform fr fre
+            encryptFr ()
 
             for i = 2 to (blockSize - 1) do
                 fr.[i - 2] <- inBuf.[inOff + i]
                 outBuf.[outOff + i] <- inBuf.[inOff + i] ^^^ fre.[i - 2]
             ()
         else if count = blockSize then
-            transform fr fre
+            encryptFr ()
 
             outBuf.[outOff] <- inBuf.[inOff] ^^^ fre.[0]
             outBuf.[outOff + 1] <- inBuf.[inOff + 1] ^^^ fre.[1]
@@ -102,54 +81,45 @@ type OpenPgpCfbBlockCipher(cipher: SymmetricAlgorithm, mode: CryptoStreamMode) =
             fr.[blockSize - 2] <- inBuf.[inOff]
             fr.[blockSize - 1] <- inBuf.[inOff + 1]
 
-            transform fr fre
+            encryptFr ()
 
             for i = 2 to (blockSize - 1) do
                 fr.[i - 2] <- inBuf.[inOff + i]
                 outBuf.[outOff + i] <- inBuf.[inOff + i] ^^^ fre.[i - 2]
             count <- blockSize + count            
         else if count = 0 then
-            transform fr fre
+            encryptFr ()
 
             for i = 0 to (blockSize - 1) do
                 fr.[i] <- inBuf.[inOff + i]
                 outBuf.[i] <- inBuf.[inOff + i] ^^^ fre.[i]
             count <- blockSize
 
-    member this.Transform =
+    let transform =
         match mode with
-        | CryptoStreamMode.Read -> this.DecryptBlock
-        | CryptoStreamMode.Write -> this.EncryptBlock
+        | CryptoStreamMode.Read -> decryptBlock
+        | CryptoStreamMode.Write -> encryptBlock
         | _ -> raise (InvalidOperationException ())
-
-    member this.TransformBlockInternal inputBuffer inputOffset inputCount outputBuffer outputOffset =
-        if inputCount + storeOff > blockSize then            
-            raise (InvalidOperationException ())
-
-        if storeOff = 0 then
-            this.Transform inputBuffer inputOffset store 0
-
-        Array.blit store storeOff outputBuffer outputOffset inputCount
-        
-        match storeOff + inputCount with
-        | size when size = blockSize -> storeOff <- 0
-        | _ -> storeOff <- inputCount + storeOff
-        inputCount
 
     interface ICryptoTransform with
         member this.CanReuseTransform: bool = 
             false
         member this.CanTransformMultipleBlocks: bool = 
-            true
+            false
         member this.Dispose(): unit = 
             ()
         member this.InputBlockSize: int = 
-            cipher.BlockSize
+            blockSize
         member this.OutputBlockSize: int = 
-            cipher.BlockSize
+            blockSize
         member this.TransformBlock (inputBuffer: byte[], inputOffset: int, inputCount: int, outputBuffer: byte[], outputOffset: int) =
-            this.TransformBlockInternal inputBuffer inputOffset inputCount outputBuffer outputOffset                
+            transform inputBuffer inputOffset outputBuffer outputOffset
+            inputCount
         member this.TransformFinalBlock(inputBuffer: byte [], inputOffset: int, inputCount: int): byte [] = 
-            let outputBuffer = Array.zeroCreate blockSize
-            this.TransformBlockInternal inputBuffer inputOffset inputCount outputBuffer 0 |> ignore
+            let finalBlock = Array.zeroCreate blockSize
+            transform inputBuffer inputOffset finalBlock 0
+            
+            let outputBuffer = Array.zeroCreate inputCount
+            Array.blit finalBlock 0 outputBuffer 0 inputCount
+            Array.fill finalBlock 0 blockSize 0uy
             outputBuffer

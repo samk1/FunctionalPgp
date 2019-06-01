@@ -1,14 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
     <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pgp\Pgp.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestData.fs" />
-    <Compile Include="OpenPgpCfb.fs" />
+    <Compile Include="SymmetricEncryptionTests.fs" />
+    <Compile Include="StringToKeyTests.fs" />
     <Compile Include="Tests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
