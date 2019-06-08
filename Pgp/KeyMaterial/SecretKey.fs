@@ -1,10 +1,10 @@
-﻿namespace KeyMaterial.SecretKey
+﻿namespace Pgp.KeyMaterial.SecretKey
 
 open Constants.SymmetricKeyAlgorithms
 open Constants.PublicKeyAlgorithms
-open Common.MPInteger
+open Pgp.Common
 open Common.StringToKeySpecifiers
-open KeyMaterial.PublicKey
+open Pgp.KeyMaterial.PublicKey
 open KeyMaterial.StringToKey
 open System.IO
 
@@ -20,24 +20,24 @@ type internal RsaSecretParameters =
         u : MPInteger
     } with
     static member Read (input : Stream) : RsaSecretParameters = 
-        { d = MPInteger.Read input
-          p = MPInteger.Read input
-          q = MPInteger.Read input
-          u = MPInteger.Read input }
+        { d = MPInteger.initial
+          p = MPInteger.initial
+          q = MPInteger.initial
+          u = MPInteger.initial }
 
 type internal DsaSecretParameters = 
     {
         x : MPInteger
     } with
     static member Read (input : Stream) : DsaSecretParameters = 
-        { x = MPInteger.Read input}
+        { x = MPInteger.initial}
 
 type internal ElgamalSecretParameters = 
     {
         x : MPInteger
     } with
     static member Read (input : Stream) : ElgamalSecretParameters = 
-        { x = MPInteger.Read input}
+        { x = MPInteger.initial}
 
 type internal SecretKeyParameters = 
     | Rsa of RsaSecretParameters
@@ -68,6 +68,14 @@ module internal SecretKeyElementReaders =
         input.Read(iv, 0, blockSize) |> ignore
         iv
 
+type internal UnknownStringToKeyUsageConventionInfo =
+    {
+        Position: int64
+        StringToKeyUsageConvention: int        
+    }
+
+type internal SecretKeyReadError =
+    UnknownStringToKeyUsageConvention of UnknownStringToKeyUsageConventionInfo
 
 type internal SecretKey = 
     {
@@ -78,16 +86,26 @@ type internal SecretKey =
         StringToKeyIV : Option<byte[]>
         SecretKeyData : Option<SecretKeyParameters>
         ChecksumData : byte[]
-    } with
-    static member Read 
-        (input : Stream) 
-        (passPhrase : string) 
-        (decrypt : SymmetricKeyAlgorithmType -> byte[] -> Stream -> Stream) : SecretKey =
-        let publicKey = PublicKey.Read input
+    }
+
+type internal SecretKeyReadResult =
+    Success of SecretKey
+    | Failure of SecretKeyReadError
+
+module internal SecretKeyReadErrors =
+    let unknownStringToKeyUsageConvention (stream: Stream) stringToKeyUsageConvention =
+        Failure (UnknownStringToKeyUsageConvention {
+            Position = stream.Position
+            StringToKeyUsageConvention = stringToKeyUsageConvention
+        })
+
+module internal SecretKeyFactory =
+    let fromStream (input : Stream) passPhrase decrypt =
+        let publicKey = PublicKey.Initial
         let stringToKeyUsageConvention = input.ReadByte()
         match stringToKeyUsageConvention with
         | 0 -> 
-            {
+            Success {
                 PublicKey = publicKey
                 StringToKeyUsageConvention = stringToKeyUsageConvention
                 StringToKeySymmetricKeyAlgorithm = Plaintext
@@ -103,15 +121,33 @@ type internal SecretKey =
             let iv = SecretKeyElementReaders.readIv symmetricKeyAlgorithm input
             let decryptedInput = decrypt symmetricKeyAlgorithm key input
             let keyParameters = SecretKeyParameters.read publicKey.PublicKeyAlgorithm decryptedInput
-            { PublicKey = publicKey
-              StringToKeyUsageConvention = stringToKeyUsageConvention
-              StringToKeySymmetricKeyAlgorithm = symmetricKeyAlgorithm
-              StringToKeySpecifier = Some(stringToKeySpecifier)
-              StringToKeyIV = Some(iv)
-              SecretKeyData = Some(keyParameters)
-              ChecksumData = (SecretKeyElementReaders.readSha1Hash input) }
-        | _ -> raise UnknownStringToKeyUsageConventionException
-    static member initial : SecretKey = 
+            Success { 
+                PublicKey = publicKey
+                StringToKeyUsageConvention = stringToKeyUsageConvention
+                StringToKeySymmetricKeyAlgorithm = symmetricKeyAlgorithm
+                StringToKeySpecifier = Some(stringToKeySpecifier)
+                StringToKeyIV = Some(iv)
+                SecretKeyData = Some(keyParameters)
+                ChecksumData = (SecretKeyElementReaders.readSha1Hash input) 
+            }
+        | 255 ->
+            let symmetricKeyAlgorithm = SymmetricKeyAlgorithmType.Read input
+            let stringToKeySpecifier = StringToKeySpecifier.read input
+            let key = StringToKeyAlgorithms.computeStringToKey passPhrase stringToKeySpecifier symmetricKeyAlgorithm
+            let iv = SecretKeyElementReaders.readIv symmetricKeyAlgorithm input
+            let decryptedInput = decrypt symmetricKeyAlgorithm key input
+            let keyParameters = SecretKeyParameters.read publicKey.PublicKeyAlgorithm decryptedInput
+            Success { 
+                PublicKey = publicKey
+                StringToKeyUsageConvention = stringToKeyUsageConvention
+                StringToKeySymmetricKeyAlgorithm = symmetricKeyAlgorithm
+                StringToKeySpecifier = Some(stringToKeySpecifier)
+                StringToKeyIV = Some(iv)
+                SecretKeyData = Some(keyParameters)
+                ChecksumData = (SecretKeyElementReaders.readTwoOctetChecksum input) 
+            }       
+        | _ -> SecretKeyReadErrors.unknownStringToKeyUsageConvention input stringToKeyUsageConvention
+    let initial () =
         { PublicKey = PublicKey.Initial
           StringToKeyUsageConvention = 0
           StringToKeySymmetricKeyAlgorithm = UnknownSymmetricKeyAlgorithm
@@ -119,5 +155,3 @@ type internal SecretKey =
           StringToKeyIV = None
           SecretKeyData = None
           ChecksumData = Array.empty }
-
-

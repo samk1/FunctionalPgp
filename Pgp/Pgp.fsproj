@@ -8,6 +8,10 @@
     <Compile Include="Constants/SignatureTypes.fs" />
     <Compile Include="Constants/PublicKeyAlgorithms.fs" />
     <Compile Include="Constants/HashAlgorithms.fs" />
+    <Compile Include="Common/ParseResult.fs" />
+    <Compile Include="Common/ParseState.fs" />
+    <Compile Include="Common/Parser.fs" />
+    <Compile Include="Common/Binary.fs" />
     <Compile Include="Common/PgpDateTime.fs" />
     <Compile Include="Common/StringToKeySpecifiers.fs" />
     <Compile Include="Common/MPInteger.fs" />
@@ -22,6 +26,5 @@
     <Compile Include="OnePassSignature.fs" />
     <Compile Include="PublicKeyEncryptedSessionKey.fs" />
     <Compile Include="DecryptionState.fs" />
-    <Compile Include="SecretKeyRing.fs" />
   </ItemGroup>
 </Project>

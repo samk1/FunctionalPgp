@@ -1,6 +1,89 @@
 namespace Pgp.Tests
 
 module TestData =
+    let RsaPublicParameters = 
+        [| 
+            8uy; 0uy; 165uy; 246uy; 244uy; 208uy; 111uy; 11uy; 69uy; 235uy; 8uy; 180uy; 167uy; 92uy; 210uy; 214uy
+            85uy; 116uy; 100uy; 36uy; 232uy; 11uy; 166uy; 3uy; 162uy; 39uy; 50uy; 214uy; 174uy; 87uy; 239uy; 93uy
+            63uy; 241uy; 142uy; 83uy; 118uy; 74uy; 210uy; 88uy; 92uy; 132uy; 124uy; 61uy; 33uy; 157uy; 246uy; 206uy
+            237uy; 25uy; 236uy; 53uy; 136uy; 187uy; 195uy; 55uy; 103uy; 47uy; 20uy; 182uy; 210uy; 118uy; 63uy; 230uy
+            113uy; 90uy; 148uy; 187uy; 81uy; 194uy; 238uy; 8uy; 251uy; 189uy; 120uy; 245uy; 214uy; 167uy; 6uy; 183uy
+            248uy; 125uy; 237uy; 180uy; 131uy; 192uy; 149uy; 85uy; 125uy; 16uy; 62uy; 122uy; 248uy; 171uy; 166uy; 231uy
+            32uy; 136uy; 53uy; 226uy; 222uy; 84uy; 28uy; 41uy; 128uy; 138uy; 55uy; 73uy; 80uy; 200uy; 2uy; 45uy
+            75uy; 21uy; 22uy; 253uy; 106uy; 80uy; 153uy; 206uy; 89uy; 212uy; 183uy; 133uy; 53uy; 46uy; 137uy; 14uy
+            253uy; 244uy; 249uy; 31uy; 21uy; 14uy; 235uy; 237uy; 81uy; 210uy; 216uy; 151uy; 91uy; 150uy; 109uy; 110uy
+            213uy; 57uy; 69uy; 46uy; 87uy; 178uy; 53uy; 237uy; 199uy; 139uy; 224uy; 86uy; 75uy; 191uy; 5uy; 93uy
+            59uy; 87uy; 64uy; 1uy; 56uy; 71uy; 125uy; 252uy; 28uy; 108uy; 63uy; 81uy; 65uy; 159uy; 124uy; 137uy
+            114uy; 81uy; 39uy; 235uy; 65uy; 44uy; 250uy; 214uy; 39uy; 230uy; 193uy; 226uy; 60uy; 6uy; 53uy; 122uy
+            113uy; 72uy; 182uy; 252uy; 28uy; 233uy; 123uy; 47uy; 5uy; 216uy; 36uy; 55uy; 3uy; 172uy; 46uy; 68uy
+            14uy; 74uy; 85uy; 204uy; 213uy; 48uy; 55uy; 116uy; 16uy; 180uy; 219uy; 105uy; 139uy; 244uy; 132uy; 126uy
+            85uy; 118uy; 166uy; 219uy; 7uy; 88uy; 155uy; 145uy; 135uy; 119uy; 68uy; 8uy; 130uy; 200uy; 51uy; 237uy
+            226uy; 30uy; 131uy; 87uy; 52uy; 12uy; 173uy; 7uy; 97uy; 67uy; 122uy; 151uy; 127uy; 184uy; 152uy; 19uy
+            83uy; 103uy; 0uy; 17uy; 1uy; 0uy; 1uy 
+        |]
+    let SecretKeyPacket = 
+        [|
+            149uy; 3uy; 178uy; 4uy; 92uy; 242uy; 74uy; 88uy; 2uy; 8uy; 0uy; 152uy; 245uy; 19uy; 221uy; 155uy
+            145uy; 41uy; 36uy; 65uy; 186uy; 16uy; 230uy; 124uy; 35uy; 125uy; 168uy; 250uy; 127uy; 216uy; 225uy; 82uy
+            194uy; 98uy; 214uy; 131uy; 70uy; 35uy; 39uy; 231uy; 14uy; 222uy; 234uy; 100uy; 5uy; 83uy; 106uy; 75uy
+            207uy; 38uy; 67uy; 26uy; 35uy; 197uy; 224uy; 238uy; 129uy; 82uy; 54uy; 57uy; 245uy; 12uy; 231uy; 210uy
+            69uy; 67uy; 168uy; 138uy; 46uy; 117uy; 82uy; 74uy; 228uy; 157uy; 216uy; 231uy; 217uy; 135uy; 29uy; 245uy
+            127uy; 9uy; 5uy; 124uy; 152uy; 233uy; 25uy; 19uy; 111uy; 235uy; 209uy; 213uy; 172uy; 76uy; 18uy; 141uy
+            188uy; 62uy; 45uy; 33uy; 139uy; 225uy; 220uy; 246uy; 180uy; 43uy; 228uy; 164uy; 143uy; 17uy; 119uy; 53uy
+            206uy; 171uy; 69uy; 158uy; 189uy; 76uy; 7uy; 22uy; 157uy; 47uy; 12uy; 214uy; 112uy; 31uy; 52uy; 112uy
+            53uy; 175uy; 169uy; 97uy; 142uy; 60uy; 96uy; 24uy; 196uy; 64uy; 190uy; 18uy; 107uy; 211uy; 152uy; 57uy
+            56uy; 154uy; 149uy; 206uy; 189uy; 98uy; 158uy; 230uy; 169uy; 101uy; 88uy; 35uy; 101uy; 85uy; 223uy; 51uy
+            16uy; 92uy; 93uy; 84uy; 53uy; 43uy; 105uy; 90uy; 56uy; 193uy; 156uy; 236uy; 94uy; 208uy; 236uy; 90uy
+            210uy; 108uy; 97uy; 105uy; 16uy; 130uy; 141uy; 98uy; 250uy; 22uy; 15uy; 115uy; 250uy; 162uy; 4uy; 26uy
+            150uy; 93uy; 5uy; 224uy; 227uy; 6uy; 109uy; 69uy; 26uy; 237uy; 226uy; 232uy; 81uy; 235uy; 7uy; 120uy
+            180uy; 159uy; 183uy; 67uy; 202uy; 220uy; 141uy; 101uy; 93uy; 229uy; 113uy; 69uy; 162uy; 136uy; 77uy; 135uy
+            220uy; 28uy; 183uy; 183uy; 231uy; 34uy; 222uy; 73uy; 223uy; 121uy; 154uy; 75uy; 170uy; 151uy; 181uy; 241uy
+            48uy; 169uy; 187uy; 89uy; 136uy; 154uy; 36uy; 164uy; 110uy; 1uy; 237uy; 175uy; 33uy; 77uy; 32uy; 165uy
+            115uy; 251uy; 62uy; 20uy; 255uy; 47uy; 70uy; 137uy; 115uy; 219uy; 99uy; 0uy; 17uy; 1uy; 0uy; 1uy
+            255uy; 7uy; 3uy; 2uy; 14uy; 7uy; 185uy; 208uy; 129uy; 64uy; 143uy; 230uy; 96uy; 38uy; 253uy; 137uy
+            27uy; 42uy; 149uy; 129uy; 252uy; 110uy; 249uy; 15uy; 0uy; 192uy; 160uy; 208uy; 181uy; 150uy; 54uy; 203uy
+            117uy; 178uy; 220uy; 140uy; 8uy; 84uy; 130uy; 225uy; 190uy; 234uy; 191uy; 250uy; 177uy; 202uy; 26uy; 71uy
+            4uy; 127uy; 160uy; 82uy; 139uy; 65uy; 49uy; 175uy; 107uy; 14uy; 174uy; 65uy; 52uy; 70uy; 75uy; 45uy
+            105uy; 59uy; 124uy; 145uy; 121uy; 205uy; 135uy; 126uy; 231uy; 82uy; 170uy; 98uy; 49uy; 237uy; 148uy; 83uy
+            146uy; 201uy; 9uy; 143uy; 153uy; 203uy; 248uy; 68uy; 248uy; 190uy; 190uy; 18uy; 24uy; 144uy; 104uy; 119uy
+            241uy; 166uy; 241uy; 117uy; 109uy; 153uy; 111uy; 75uy; 128uy; 70uy; 42uy; 24uy; 51uy; 74uy; 152uy; 151uy
+            159uy; 141uy; 134uy; 23uy; 181uy; 205uy; 185uy; 25uy; 62uy; 248uy; 71uy; 112uy; 119uy; 38uy; 18uy; 239uy
+            187uy; 26uy; 195uy; 21uy; 169uy; 178uy; 178uy; 100uy; 69uy; 63uy; 250uy; 217uy; 220uy; 168uy; 189uy; 58uy
+            222uy; 224uy; 224uy; 64uy; 139uy; 161uy; 177uy; 189uy; 244uy; 55uy; 235uy; 133uy; 53uy; 97uy; 59uy; 125uy
+            39uy; 161uy; 140uy; 161uy; 200uy; 44uy; 133uy; 42uy; 232uy; 38uy; 88uy; 26uy; 1uy; 97uy; 224uy; 233uy
+            35uy; 189uy; 205uy; 50uy; 200uy; 158uy; 231uy; 36uy; 38uy; 222uy; 72uy; 219uy; 204uy; 211uy; 104uy; 70uy
+            22uy; 175uy; 201uy; 207uy; 219uy; 253uy; 45uy; 242uy; 11uy; 21uy; 137uy; 152uy; 180uy; 36uy; 43uy; 71uy
+            203uy; 138uy; 223uy; 136uy; 62uy; 76uy; 139uy; 107uy; 230uy; 25uy; 134uy; 105uy; 72uy; 83uy; 79uy; 20uy
+            230uy; 132uy; 200uy; 129uy; 129uy; 60uy; 52uy; 34uy; 139uy; 52uy; 37uy; 175uy; 34uy; 235uy; 72uy; 231uy
+            92uy; 104uy; 40uy; 155uy; 6uy; 243uy; 12uy; 236uy; 168uy; 47uy; 23uy; 74uy; 124uy; 85uy; 224uy; 61uy
+            120uy; 118uy; 113uy; 204uy; 159uy; 109uy; 30uy; 94uy; 241uy; 150uy; 92uy; 97uy; 44uy; 124uy; 140uy; 207uy
+            140uy; 42uy; 95uy; 197uy; 123uy; 207uy; 178uy; 126uy; 68uy; 145uy; 11uy; 228uy; 78uy; 53uy; 77uy; 77uy
+            132uy; 68uy; 15uy; 162uy; 180uy; 137uy; 217uy; 209uy; 254uy; 25uy; 40uy; 208uy; 92uy; 192uy; 113uy; 248uy
+            146uy; 151uy; 216uy; 201uy; 239uy; 13uy; 124uy; 84uy; 145uy; 106uy; 12uy; 63uy; 59uy; 194uy; 104uy; 82uy
+            140uy; 200uy; 193uy; 59uy; 126uy; 240uy; 100uy; 185uy; 46uy; 17uy; 212uy; 68uy; 30uy; 157uy; 229uy; 14uy
+            212uy; 29uy; 48uy; 92uy; 144uy; 104uy; 244uy; 99uy; 156uy; 129uy; 138uy; 213uy; 241uy; 140uy; 114uy; 135uy
+            28uy; 159uy; 191uy; 39uy; 116uy; 73uy; 108uy; 195uy; 119uy; 41uy; 207uy; 17uy; 254uy; 120uy; 32uy; 40uy
+            225uy; 3uy; 228uy; 107uy; 47uy; 155uy; 133uy; 122uy; 85uy; 124uy; 207uy; 208uy; 167uy; 191uy; 27uy; 79uy
+            155uy; 192uy; 178uy; 53uy; 195uy; 64uy; 12uy; 252uy; 126uy; 206uy; 216uy; 114uy; 101uy; 221uy; 200uy; 136uy
+            201uy; 75uy; 194uy; 177uy; 33uy; 222uy; 124uy; 142uy; 205uy; 235uy; 53uy; 116uy; 88uy; 19uy; 168uy; 55uy
+            121uy; 116uy; 220uy; 163uy; 37uy; 249uy; 160uy; 235uy; 108uy; 37uy; 67uy; 170uy; 147uy; 238uy; 231uy; 38uy
+            11uy; 12uy; 245uy; 171uy; 253uy; 93uy; 154uy; 237uy; 139uy; 31uy; 117uy; 212uy; 17uy; 57uy; 85uy; 85uy
+            162uy; 91uy; 142uy; 213uy; 85uy; 17uy; 170uy; 57uy; 179uy; 166uy; 174uy; 64uy; 73uy; 217uy; 225uy; 38uy
+            219uy; 179uy; 168uy; 102uy; 192uy; 245uy; 220uy; 64uy; 211uy; 181uy; 36uy; 151uy; 157uy; 93uy; 133uy; 201uy
+            81uy; 18uy; 1uy; 58uy; 85uy; 182uy; 251uy; 159uy; 16uy; 229uy; 41uy; 189uy; 208uy; 180uy; 10uy; 210uy
+            62uy; 0uy; 13uy; 20uy; 114uy; 172uy; 238uy; 11uy; 107uy; 51uy; 76uy; 183uy; 166uy; 194uy; 153uy; 13uy
+            63uy; 6uy; 136uy; 163uy; 92uy; 248uy; 78uy; 116uy; 32uy; 166uy; 161uy; 238uy; 193uy; 232uy; 129uy; 246uy
+            149uy; 181uy; 84uy; 242uy; 172uy; 194uy; 25uy; 208uy; 33uy; 164uy; 172uy; 22uy; 72uy; 159uy; 202uy; 85uy
+            7uy; 118uy; 170uy; 30uy; 100uy; 178uy; 47uy; 134uy; 13uy; 126uy; 84uy; 176uy; 255uy; 85uy; 82uy; 144uy
+            88uy; 20uy; 196uy; 64uy; 220uy; 133uy; 186uy; 192uy; 76uy; 60uy; 150uy; 175uy; 210uy; 232uy; 27uy; 197uy
+            153uy; 14uy; 220uy; 183uy; 152uy; 8uy; 5uy; 57uy; 144uy; 204uy; 235uy; 111uy; 212uy; 252uy; 236uy; 181uy
+            67uy; 27uy; 162uy; 238uy; 153uy; 235uy; 24uy; 101uy; 98uy; 116uy; 10uy; 231uy; 236uy; 67uy; 173uy; 42uy
+            114uy; 180uy; 44uy; 221uy; 105uy; 208uy; 16uy; 145uy; 221uy; 207uy; 255uy; 48uy; 2uy; 104uy; 191uy; 71uy
+            230uy; 254uy; 56uy; 232uy; 30uy; 198uy; 160uy; 146uy; 16uy; 98uy; 216uy; 253uy; 250uy; 172uy; 5uy; 43uy
+            138uy; 124uy; 198uy; 125uy; 15uy; 12uy; 9uy; 216uy; 254uy; 20uy; 63uy; 251uy; 177uy; 162uy; 182uy; 17uy
+            196uy; 205uy; 164uy; 151uy; 77uy; 150uy; 114uy; 109uy; 226uy; 79uy; 100uy; 254uy; 223uy; 158uy; 49uy; 200uy
+            20uy; 130uy; 123uy; 197uy; 29uy 
+        |]
     let Encrypted15Bytes = [| 0xeeuy; 0x61uy; 0xc3uy; 0x5cuy; 0x67uy; 0x02uy; 0xa4uy; 0xb3uy; 0x00uy; 0xc4uy; 0x72uy; 0xd1uy; 0x42uy; 0xbcuy; 0xa3uy |]
     let Encrypted16Bytes = [| 0xeeuy; 0x61uy; 0xc3uy; 0x5cuy; 0x67uy; 0x02uy; 0xa4uy; 0xb3uy; 0x00uy; 0xc4uy; 0x72uy; 0xd1uy; 0x42uy; 0xbcuy; 0xa3uy; 0xa6uy |]
     let Encrypted17Bytes = [| 0xeeuy; 0x61uy; 0xc3uy; 0x5cuy; 0x67uy; 0x02uy; 0xa4uy; 0xb3uy; 0x00uy; 0xc4uy; 0x72uy; 0xd1uy; 0x42uy; 0xbcuy; 0xa3uy; 0xa6uy; 0xd5uy |]

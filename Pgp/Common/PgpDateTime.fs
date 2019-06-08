@@ -1,14 +1,16 @@
-﻿namespace Common.PgpDateTime
+﻿namespace Pgp.Common
 
 open System.IO
 
-type internal PgpDateTime = 
-    { 
-        Epoch : uint32 
-    } with
-    static member Read (input : Stream) : PgpDateTime =
-        let reader = new BinaryReader (input)
-        { Epoch = reader.ReadUInt32 () }
+type internal PgpDateTimeError = PgpDateTimeReadError of BinaryReadError
 
-    static member Initial : PgpDateTime =
-        { Epoch = uint32 0 }
+type internal PgpDateTime = PgpDateTime of int64
+
+module internal PgpDateTime =
+    let initial = PgpDateTime 0L
+
+    let parser =
+        Parser.unit (initial, None)
+        |> Binary.uint32Read
+            (fun _ n -> PgpDateTime n)
+            (fun _ (_, err) -> PgpDateTimeReadError err)

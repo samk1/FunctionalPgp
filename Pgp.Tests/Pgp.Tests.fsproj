@@ -8,8 +8,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestData.fs" />
+    <Compile Include="RsaPublicKeyParametersTests.fs" />
     <Compile Include="SymmetricEncryptionTests.fs" />
-    <Compile Include="StringToKeyTests.fs" />
+    <Compile Include="SecretKeyPacketTests.fs" />
     <Compile Include="Tests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
