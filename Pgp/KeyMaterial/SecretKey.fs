@@ -1,10 +1,9 @@
-﻿namespace Pgp.KeyMaterial.SecretKey
+﻿namespace Pgp.KeyMaterial
 
 open Constants.SymmetricKeyAlgorithms
-open Constants.PublicKeyAlgorithms
+open Pgp.Constants
 open Pgp.Common
 open Common.StringToKeySpecifiers
-open Pgp.KeyMaterial.PublicKey
 open KeyMaterial.StringToKey
 open System.IO
 

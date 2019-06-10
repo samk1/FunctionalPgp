@@ -1,4 +1,4 @@
-﻿namespace Constants.PublicKeyAlgorithms
+﻿namespace Pgp.Constants
 
 open System.IO
 

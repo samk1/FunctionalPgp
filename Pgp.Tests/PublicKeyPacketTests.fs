@@ -3,7 +3,7 @@ namespace Pgp.Tests
 open Fuchu
 open System.IO
 open Pgp.Common
-open Pgp.KeyMaterial.PublicKey
+open Pgp.KeyMaterial
 
 module internal PublicKeyPacketData =
     let testPublicKeyPacket = 

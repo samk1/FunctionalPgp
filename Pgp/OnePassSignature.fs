@@ -6,7 +6,7 @@ open Common.KeyId
 open Common.Boolean
 open Constants.SignatureTypes
 open Constants.HashAlgorithms
-open Constants.PublicKeyAlgorithms
+open Pgp.Constants
 
 type internal OnePassSignature = 
     {

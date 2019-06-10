@@ -1,7 +1,7 @@
 namespace Pgp.Tests
 open Fuchu
 open System.IO
-open Pgp.KeyMaterial.SecretKey
+open Pgp.KeyMaterial
     
 module SecretKeyPacketTests =
     let secretKeyPacketStream () 

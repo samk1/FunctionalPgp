@@ -2,7 +2,7 @@ namespace Pgp.Tests
 
 open Fuchu
 open System.IO
-open Pgp.KeyMaterial.PublicKey
+open Pgp.KeyMaterial
 open Pgp.Common
 
 module RsaPublicKeyParametersTests =

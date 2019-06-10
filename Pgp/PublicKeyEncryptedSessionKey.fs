@@ -1,21 +1,20 @@
 ﻿namespace Pgp
 
 open System.IO
-open Constants
+open Pgp.Constants
 open Common.KeyId
-open Constants.PublicKeyAlgorithms
 
 type internal PublicKeyEncryptedSessionKey = 
     {
         PublicKeyEncryptedSessionKeyVersion : int;
         EncryptingKeyId : byte[];
-        PublicKeyAlgorithm : PublicKeyAlgorithms.PublicKeyAlgorithm;
+        PublicKeyAlgorithm : PublicKeyAlgorithm;
         EncryptedSessionKey : byte[];
     } with
     static member Initial = 
         { PublicKeyEncryptedSessionKeyVersion = 0;
           EncryptingKeyId = KeyId.initial;
-          PublicKeyAlgorithm = PublicKeyAlgorithms.UnknownPublicKeyAlgorithm;
+          PublicKeyAlgorithm = UnknownPublicKeyAlgorithm;
           EncryptedSessionKey = Array.empty<byte> }
 
     static member Read (input : Stream) (length : int) : PublicKeyEncryptedSessionKey =

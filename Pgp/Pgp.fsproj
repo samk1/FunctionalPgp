@@ -3,7 +3,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Constants/SymmetricKeyAlgorithms.fs" />
     <Compile Include="Constants/SignatureTypes.fs" />
     <Compile Include="Constants/PublicKeyAlgorithms.fs" />
@@ -17,9 +16,14 @@
     <Compile Include="Common/MPInteger.fs" />
     <Compile Include="Common/Boolean.fs" />
     <Compile Include="Common/KeyId.fs" />
+    <Compile Include="KeyMaterial/RsaPublicParameters.fs" />
+    <Compile Include="KeyMaterial/DsaPublicParameters.fs" />
+    <Compile Include="KeyMaterial/ElgamalPublicParameters.fs" />
+    <Compile Include="KeyMaterial/PublicKeyParameters.fs" />
     <Compile Include="KeyMaterial/PublicKey.fs" />
     <Compile Include="KeyMaterial/StringToKey.fs" />
     <Compile Include="KeyMaterial/SecretKey.fs" />
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="CypherFeedbackMode.fs" />
     <Compile Include="SymmetricEncryption.fs" />
     <Compile Include="PacketHeader.fs" />
