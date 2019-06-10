@@ -101,7 +101,7 @@ module internal SecretKeyReadErrors =
 
 module internal SecretKeyFactory =
     let fromStream (input : Stream) passPhrase decrypt =
-        let publicKey = PublicKey.Initial
+        let publicKey = PublicKey.initial
         let stringToKeyUsageConvention = input.ReadByte()
         match stringToKeyUsageConvention with
         | 0 -> 
@@ -148,7 +148,7 @@ module internal SecretKeyFactory =
             }       
         | _ -> SecretKeyReadErrors.unknownStringToKeyUsageConvention input stringToKeyUsageConvention
     let initial () =
-        { PublicKey = PublicKey.Initial
+        { PublicKey = PublicKey.initial
           StringToKeyUsageConvention = 0
           StringToKeySymmetricKeyAlgorithm = UnknownSymmetricKeyAlgorithm
           StringToKeySpecifier = None

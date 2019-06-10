@@ -2,85 +2,112 @@
 
 open Constants.PublicKeyAlgorithms
 open Pgp.Common
-open System.IO
-open System.Security.Cryptography.X509Certificates
 
-exception NotImplementedPublicKeyAlgorithmException of string
+type internal RsaPublicParameters = { ExponentE: MPInteger; ModulusN: MPInteger }
 
-module internal Errors = 
-    let internal errorPos (input: Stream) (msg: string): string =
-        sprintf "position: %A %s" input.Position msg
-
-    let  unimplementedPublicKeyAlgorithm (input: Stream) (tag: PublicKeyAlgorithm) =
-        let message = (errorPos input (sprintf "Unsupported public key algorithm: %A" tag))
-        printfn "%s" message
-        raise (NotImplementedPublicKeyAlgorithmException message)
-
-type internal RsaPublicParameters = { PublicExponent: MPInteger; PublicModulus: MPInteger }
-
-type internal DsaParameters = 
-    { 
-        p : MPInteger 
-        q : MPInteger 
-        g : MPInteger 
-        y : MPInteger
-    } with
-    static member Initial =
-        { p = MPInteger.initial
-          q = MPInteger.initial
-          g = MPInteger.initial
-          y = MPInteger.initial }
-
-type internal ElgamalParameters = 
-    { 
-        p : MPInteger
-        e : MPInteger 
-    } with
-    static member Read (input : Stream) : ElgamalParameters =
-        { p = MPInteger.initial
-          e = MPInteger.initial }
-
-type internal RsaParametersError =
-    InvalidRsaPublicModulus of MPIntegerError
-    | InvalidRsaPublicExponent of MPIntegerError
-
-type internal DsaParametersReadError =
-    | InvalidDsaPrimeP of MPIntegerError
+type internal RsaPublicParametersError =
+    | RsaModulusNReadError of MPIntegerError
+    | RsExponentEReadError of MPIntegerError
 
 module internal RsaPublicParameters =
     let initial =
-        { PublicExponent = MPInteger.initial; PublicModulus = MPInteger.initial }
+        { ExponentE = MPInteger.initial; ModulusN = MPInteger.initial }
 
     let parser =
         Parser.unit (initial, None)
-        |> MPInteger.read (fun rsa mpi -> { rsa with PublicExponent = mpi }) InvalidRsaPublicExponent
-        |> MPInteger.read (fun rsa mpi -> { rsa with PublicModulus = mpi }) InvalidRsaPublicModulus
+        |> MPInteger.read (fun rsa mpi -> { rsa with ModulusN = mpi }) RsaModulusNReadError
+        |> MPInteger.read (fun rsa mpi -> { rsa with ExponentE = mpi }) RsExponentEReadError
 
     let read withRsa withRsaError =
         Parser.foldpr withRsa withRsaError parser
 
+type internal DsaPublicParameters = 
+    { PrimeP : MPInteger 
+      GroupOrderQ : MPInteger 
+      GroupGeneratorG : MPInteger 
+      PublicKeyY : MPInteger }
+
+type internal DsaPublicParametersError =
+    | DsaPrimePReadError of MPIntegerError
+    | DsaGroupOrderQReadError of MPIntegerError
+    | DsaGroupGeneratorGReadError of MPIntegerError
+    | DsaPublicKeyYReadError of MPIntegerError
+
+module internal DsaPublicParameters =
+    let initial =
+        { PrimeP = MPInteger.initial
+          GroupOrderQ = MPInteger.initial
+          GroupGeneratorG = MPInteger.initial
+          PublicKeyY = MPInteger.initial }
+
+    let parser =
+        Parser.unit (initial, None)
+        |> MPInteger.read (fun dsa mpi -> { dsa with PrimeP = mpi }) DsaPrimePReadError
+        |> MPInteger.read (fun dsa mpi -> { dsa with GroupOrderQ = mpi }) DsaGroupOrderQReadError
+        |> MPInteger.read (fun dsa mpi -> { dsa with GroupGeneratorG = mpi }) DsaGroupGeneratorGReadError
+        |> MPInteger.read (fun dsa mpi -> { dsa with PublicKeyY = mpi }) DsaPublicKeyYReadError
+
+    let read withDsa withDsaError =
+        Parser.foldpr withDsa withDsaError parser
+
+type internal ElgamalPublicParameters = { PrimeP : MPInteger; GroupGeneratorG : MPInteger }
+
+type internal ElgamalPublicParametersError =
+    | ElgamalPrimePReadError of MPIntegerError
+    | ElgamalGroupGeneratorGReadError of MPIntegerError
+
+module internal ElgamalPublicParameters = 
+    let initial =
+        { PrimeP = MPInteger.initial; GroupGeneratorG = MPInteger.initial }
+
+    let parser =
+        Parser.unit (initial, None)
+        |> MPInteger.read (fun elgamal mpi -> { elgamal with PrimeP = mpi }) ElgamalPrimePReadError
+        |> MPInteger.read (fun elgamal mpi -> { elgamal with GroupGeneratorG = mpi }) ElgamalGroupGeneratorGReadError
+
+    let read withElgamal withElgamalError =
+        Parser.foldpr withElgamal withElgamalError parser
+
 type internal PublicKeyParametersErrorType =
-    RsaParametersReadError of RsaParametersError
+    | RsaParametersReadError of RsaPublicParametersError
+    | DsaParametersReadError of DsaPublicParametersError
+    | ElgamalParametersReadError of ElgamalPublicParametersError
+    | UnknownAlgorithmType of PublicKeyAlgorithm
 
 type internal PublicKeyParametersError = PublicKeyParametersError of PublicKeyParametersErrorType
 
 type internal PublicKeyParameters =
-    Rsa of RsaPublicParameters
+    | Rsa of RsaPublicParameters
+    | Dsa of DsaPublicParameters
+    | Elgamal of ElgamalPublicParameters
     | Unknown
 
 module internal PublicKeyParameters =
     let initial = Unknown
 
-    let useRsaParser =
+    let useParamParser paramType errorType reader =
         Parser.unit (initial, None)
-        |> RsaPublicParameters.read
-            (fun _ rsa -> Rsa rsa)
-            (RsaParametersReadError >> PublicKeyParametersError)
+        |> reader (fun _ parms -> paramType parms) (errorType >> PublicKeyParametersError)
+
+    let useRsaParser =
+        useParamParser Rsa RsaParametersReadError RsaPublicParameters.read
+
+    let useDsaParser =
+        useParamParser Dsa DsaParametersReadError DsaPublicParameters.read
+
+    let useElgamalParser =
+        useParamParser Elgamal ElgamalParametersReadError ElgamalPublicParameters.read    
+
+    let useUnknownAlgorithmTypeParser alg =
+        Parser.unit (initial, Some (PublicKeyParametersError (UnknownAlgorithmType alg)))
 
     let parser =
         let makeParser algorithm =
             match algorithm with
             | RsaEncryptOnly | RsaEncryptOrSign | RsaSignOnly -> useRsaParser
+            | DsaSignOnly -> useDsaParser
+            | ElgamalEncryptOnly -> useElgamalParser
+            | other -> useUnknownAlgorithmTypeParser other
 
         let publicKeyParser state =
             (fun alg -> 
@@ -90,28 +117,10 @@ module internal PublicKeyParameters =
         Parser publicKeyParser
 
 type internal PublicKey = 
-    { 
-        VersionNumber : int
-        CreationTime : PgpDateTime
-        PublicKeyAlgorithm : PublicKeyAlgorithm
-        KeyParameters : PublicKeyParameters 
-    } with
-    static member Read (input : Stream) : PublicKey =
-        let versionNumber = input.ReadByte()
-        let creationTime = PgpDateTime.initial
-        let publicKeyAlgorithm = PublicKeyAlgorithm.UnknownPublicKeyAlgorithm
-        let keyParameters = 
-            match publicKeyAlgorithm with
-            | _ -> Errors.unimplementedPublicKeyAlgorithm input publicKeyAlgorithm
-        { VersionNumber = versionNumber
-          CreationTime = creationTime
-          PublicKeyAlgorithm = publicKeyAlgorithm
-          KeyParameters = keyParameters }
-    static member Initial : PublicKey =
-        { VersionNumber = 0
-          CreationTime = PgpDateTime.initial
-          PublicKeyAlgorithm = UnknownPublicKeyAlgorithm
-          KeyParameters = Unknown }
+    { VersionNumber : int
+      CreationTime : PgpDateTime
+      PublicKeyAlgorithm : PublicKeyAlgorithm
+      KeyParameters : PublicKeyParameters }
 
 type internal PublicKeyErrorType =
     | PublicKeyVersionReadError of BinaryReadError

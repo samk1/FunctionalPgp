@@ -55,7 +55,6 @@ module internal StringToKeyAlgorithms =
                                 (HashAlgorithm (hashAlgorithmType)).Load(Array.zeroCreate i)]
         extractKey (iterateHash (Array.concat([salt; passPhrase])) contexts count 0) keyLength
 
-
     let computeStringToKey (passPhrase : string) (specifier : StringToKeySpecifier) (symmetricAlgorithm : SymmetricKeyAlgorithmType) : byte[] =
         let passPhraseBytes = Encoding.UTF8.GetBytes(passPhrase)
         match specifier with
