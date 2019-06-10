@@ -29,6 +29,36 @@ module ParseResult =
         | ParseResult (result, None) -> ParseResult(fresult result, None)
         | ParseResult (result, Some error) -> ParseResult(fresult result, Some (ferror error))
 
+    let mapResult f (ParseResult (result, error)) =
+        match error with
+        | None -> ParseResult (f result)
+        | Some err -> failure (result, err)
+
+
+    let fold fresult ferror (ParseResult (resulta, errora)) (ParseResult (resultb, errorb)) =
+        match errora, errorb with
+        | None, None -> success (fresult resulta resultb)
+        | _, Some errb -> failure (resulta, ferror errb)
+        | Some erra, _ -> failure (resulta, erra)
+
+    let mapf fresult ferror f =
+        let foldResultA parseResultA =
+            let (ParseResult (resultA, errorAOption)) = parseResultA
+            match errorAOption with
+            | None ->
+                let (ParseResult (resultB, errorBOption)) = f parseResultA
+                match errorBOption with
+                | None -> success (fresult resultA resultB)
+                | Some errorB -> failure (resultA, ferror errorB)
+            | Some errorA -> failure (resultA, errorA)
+        foldResultA
+
+    let bindf f =
+        let bindA (ParseResult (resultA, _)) =
+            f resultA
+        bindA
+
+
     let apply fpr xpr =
             let (ParseResult (f, _)) = fpr
             let (ParseResult (x, error)) = xpr
@@ -39,8 +69,3 @@ module ParseResult =
 
     let foldError f pr (resulta, errora) =
         map id (fun errorb -> (f errorb (resulta, errora))) pr
-
-    let fold fresult ferror pr (ParseResult (resulta, erroraoption)) =
-        match erroraoption with
-        | Some errora -> foldError ferror pr (resulta, errora)
-        | None -> foldResult fresult pr resulta

@@ -15,6 +15,6 @@ module RsaPublicKeyParametersTests =
             match state with
             | Some state -> 
                 let (result, _) = Parser.run RsaPublicParameters.parser state
-                printf "%A" result
-            | None -> printf "read failed"            
+                printfn "%A" result
+            | None -> printf "read failed"
     ]    

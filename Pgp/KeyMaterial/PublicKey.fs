@@ -40,11 +40,11 @@ type internal ElgamalParameters =
           e = MPInteger.initial }
 
 type internal RsaParametersReadError =
-    InvalidRsaPublicModulus of MPIntegerReadError
-    | InvalidRsaPublicExponent of MPIntegerReadError
+    InvalidRsaPublicModulus of MPIntegerError
+    | InvalidRsaPublicExponent of MPIntegerError
 
 type internal DsaParametersReadError =
-    | InvalidDsaPrimeP of MPIntegerReadError
+    | InvalidDsaPrimeP of MPIntegerError
 
 module internal RsaPublicParameters =
     let initial =
@@ -56,10 +56,7 @@ module internal RsaPublicParameters =
         |> MPInteger.read (fun rsa mpi -> { rsa with PublicModulus = mpi }) InvalidRsaPublicModulus
 
     let read withRsa withRsaError =
-        Parser.fold
-            (ParseResult.foldResult withRsa)
-            (ParseResult.foldError withRsaError)
-            parser
+        Parser.foldpr withRsa withRsaError parser
 
 type internal PublicKey = 
     { 

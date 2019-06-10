@@ -20,4 +20,6 @@ module Tests =
         testCase "Encrypt 17 bytes" SymmetricEncryptionTests.``Encrypt 17 bytes using CryptoStream``
         SecretKeyPacketTests.tests
         RsaPublicKeyParametersTests.tests
+        ParserTests.tests
+        MPIntegerTests.tests
     ]

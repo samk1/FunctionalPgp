@@ -1,6 +1,7 @@
 namespace Pgp.Common
 
 open System.IO
+open System.Threading
 
 type internal Parser<'T> = 
     Parser of (ParseState -> 'T * ParseState)
@@ -9,9 +10,9 @@ module internal Parser =
     let run (Parser parse) parseState =
         parse parseState
 
-    let map f (Parser parse) =
+    let map f parser =
         let duringParse parseState =
-            let src, parseState = parse parseState
+            let src, parseState = run parser parseState
             let dest = f src
             dest, parseState
         Parser duringParse
@@ -21,15 +22,26 @@ module internal Parser =
             match e with
             | Some e -> ParseResult.failure (x, e), parseState
             | None -> ParseResult.success x, parseState
-        Parser unitParser        
+        Parser unitParser
 
-    let bind f parser =
+    let unitf (f: 'a -> 'b) =
+        let unitfParser parseState =
+            (f, parseState)
+        Parser unitfParser
+
+    let bind f parsera =
         let bindParser parseState =
-            let src, parseState = run parser parseState
-            let destParser = f src
-            let dest, parseState = run destParser parseState
-            dest, parseState
+            let resulta, parseState = run parsera parseState
+            let parserb = f resulta
+            let resultb, parseState = run parserb parseState
+            resultb, parseState
         Parser bindParser
+
+    let bindpr fpr parsera =
+        let binder pr =
+            match pr with
+            | ParseResult (resulta, _) -> fpr resulta
+        bind binder parsera
 
     let apply parserF parserX =
         let applyParser parseState =
@@ -39,15 +51,26 @@ module internal Parser =
             y, parseState
         Parser applyParser
 
-    let fold fresult ferror parser =
+    let foldpr fresult ferror parserb parsera =
         let folder state =
-            map
-                (ParseResult.bind (fresult state) (ferror state))
-                parser
-        bind folder
+            let (resulta, state) = run parsera state
+            let resultf = ParseResult.fold fresult ferror resulta
+            (resultf, state)
+        let parserf = Parser folder
+        apply parserf parserb
 
-    let makeReader parser withResult withError =
-        fold
-            (ParseResult.foldResult withResult)
-            (ParseResult.foldError withError)
-            parser
+    let makeReader withResult withError parser =
+        foldpr withResult withError parser
+
+    let validate validatorf error parser =
+        let validator result =
+            if (validatorf result) then (result, None)
+            else (result, Some error)
+        map (ParseResult.mapResult validator) parser
+
+    let tap f parser =
+        let tapParser = unitf (fun r -> f r; r)
+        apply tapParser parser
+
+    let dump parser =
+        tap (fun result -> printfn("tap: %A") result) parser
