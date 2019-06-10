@@ -11,6 +11,7 @@
     <Compile Include="ParserTests.fs" />
     <Compile Include="MPIntegerParserTests.fs" />
     <Compile Include="RsaPublicKeyParametersTests.fs" />
+    <Compile Include="PublicKeyPacketTests.fs" />
     <Compile Include="SymmetricEncryptionTests.fs" />
     <Compile Include="SecretKeyPacketTests.fs" />
     <Compile Include="Tests.fs" />

@@ -21,7 +21,7 @@ type internal PublicKeyEncryptedSessionKey =
     static member Read (input : Stream) (length : int) : PublicKeyEncryptedSessionKey =
         let versionNumber = (input.ReadByte())
         let keyId = KeyId.read input
-        let publicKeyAlgorithm = PublicKeyAlgorithm.Read input
+        let publicKeyAlgorithm = PublicKeyAlgorithm.UnknownPublicKeyAlgorithm
         input.Seek((int64 (length - 10)), SeekOrigin.Current) |> ignore
         { PublicKeyEncryptedSessionKey.Initial with
                 PublicKeyEncryptedSessionKeyVersion = versionNumber

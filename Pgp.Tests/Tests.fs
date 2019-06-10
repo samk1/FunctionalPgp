@@ -22,4 +22,5 @@ module Tests =
         RsaPublicKeyParametersTests.tests
         ParserTests.tests
         MPIntegerTests.tests
+        PublicKeyPacketTests.tests
     ]

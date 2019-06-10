@@ -40,8 +40,12 @@ module internal MPInteger =
 
     let parser =
         Parser.unit (initial, None)
-        |> BinaryParsers.uint16Reader (fun mpi n -> { mpi with Length = n }) (MPIntegerLengthReadError >> MPIntegerError)
-        |> Parser.validate (fun mpi -> mpi.Length > 0) (MPIntegerError InvalidMPIntegerLength)
+        |> BinaryParsers.uint16Reader 
+            (fun mpi n -> { mpi with Length = n }) 
+            (MPIntegerLengthReadError >> MPIntegerError)
+        |> Parser.validate 
+            (fun mpi -> mpi.Length > 0) 
+            (MPIntegerError InvalidMPIntegerLength)
         |> bytesParser
 
     let read withMpi withMpiError =

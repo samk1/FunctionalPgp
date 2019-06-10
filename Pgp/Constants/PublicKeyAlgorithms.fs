@@ -14,9 +14,10 @@ type internal PublicKeyAlgorithm =
     | ReservedFormerlyElgamalEncryptOrSign
     | ReservedDiffieHellman
     | PrivateOrExperimentalPublicKeyAlgorithm
-with
-    static member Read (input : Stream) : PublicKeyAlgorithm =
-        match (input.ReadByte()) with
+
+module internal PublicKeyAlgorithm =
+    let ofInt n : PublicKeyAlgorithm =
+        match n with
         | 1 -> RsaEncryptOrSign
         | 2 -> RsaEncryptOnly
         | 3 -> RsaSignOnly
@@ -28,4 +29,3 @@ with
         | 21 -> ReservedDiffieHellman
         | octet when octet >= 100 && octet <= 110 -> PrivateOrExperimentalPublicKeyAlgorithm
         | _ -> UnknownPublicKeyAlgorithm
-

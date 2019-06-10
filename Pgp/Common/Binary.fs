@@ -26,8 +26,15 @@ module internal Binary =
     let readUint16 state =
         tryReadInt state readUint16FromBinaryReader
 
+    let readUint32FromBinaryReader (br: BinaryReader) =
+        let b1 = br.ReadByte ()
+        let b2 = br.ReadByte ()
+        let b3 = br.ReadByte ()
+        let b4 = br.ReadByte ()
+        int64 (BitConverter.ToUInt32 ([| b4; b3; b2; b1 |], 0))
+
     let readUint32 state =
-        tryReadInt state (fun br -> int64 (br.ReadUInt32 ()))
+        tryReadInt state readUint32FromBinaryReader
 
     let readBytes state count onSuccess onError =
         try
@@ -63,4 +70,14 @@ module internal BinaryParsers =
         Parser parser
 
     let uint16Reader withInt withError =
-        Parser.foldpr withInt withError uint16Parser    
+        Parser.foldpr withInt withError uint16Parser
+
+    let uint8Parser =
+        let parser state =
+            (Binary.readByte state
+                ParseResult.success
+                (fun err -> ParseResult.failure (0, err))), state
+        Parser parser
+
+    let uint8Reader withInt withError =
+        Parser.foldpr withInt withError uint8Parser           

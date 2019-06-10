@@ -14,3 +14,6 @@ module internal PgpDateTime =
         |> BinaryParsers.uint32Reader
             (fun _ n -> PgpDateTime n)
             PgpDateTimeReadError
+
+    let reader withPgpDateTime withError =
+        Parser.foldpr withPgpDateTime withError parser
