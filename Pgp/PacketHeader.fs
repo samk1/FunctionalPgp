@@ -1,6 +1,9 @@
 ﻿namespace Pgp
 
 open System.IO
+open Pgp.Constants
+open Pgp.Common
+open System.Runtime.InteropServices
 
 exception internal UnknownPacketTagException
 
@@ -10,63 +13,13 @@ exception internal UnsupportedLengthTypeException
 
 type internal PacketHeaderFormat = NewFormat | OldFormat
 
-type internal PacketTag = 
-    | ReservedPacket
-    | PublicKeyEncryptedSessionKeyPacket
-    | SignaturePacket
-    | SymettricKeyEncryptedSessionKeyPacket
-    | OnePassSignaturePacket
-    | SecretKeyPacket
-    | PublicKeyPacket
-    | SecretSubkeyPacket
-    | CompressedDataPacket
-    | SymmetricallyEncryptedDataPacket
-    | MarkerPacket
-    | LiteralDataPacket
-    | TrustPacket
-    | UserIdPacket
-    | PublicSubkeyPacket
-    | UserAttributePacket
-    | SymmetricallyEncryptedAndIntegrityProtectedDataPacket
-    | ModificationDetectionCodePacket
-    | PrivateOrExperimental60Packet
-    | PrivateOrExperimental61Packet
-    | PrivateOrExperimental62Packet
-    | PrivateOrExperimental63Packet
-    with 
-    static member Read (tag: int) : PacketTag = 
-        match tag with
-        | 0 -> ReservedPacket
-        | 1 -> PublicKeyEncryptedSessionKeyPacket
-        | 2 -> SignaturePacket
-        | 3 -> SymettricKeyEncryptedSessionKeyPacket
-        | 4 -> OnePassSignaturePacket
-        | 5 -> SecretKeyPacket
-        | 6 -> PublicKeyPacket
-        | 7 -> SecretSubkeyPacket
-        | 8 -> CompressedDataPacket
-        | 9 -> SymmetricallyEncryptedDataPacket
-        | 10 -> MarkerPacket
-        | 11 -> LiteralDataPacket
-        | 12 -> TrustPacket
-        | 13 -> UserIdPacket
-        | 14 -> PublicSubkeyPacket
-        | 17 -> UserAttributePacket
-        | 18 -> SymmetricallyEncryptedAndIntegrityProtectedDataPacket
-        | 19 -> ModificationDetectionCodePacket
-        | 60 -> PrivateOrExperimental60Packet
-        | 61 -> PrivateOrExperimental61Packet
-        | 62 -> PrivateOrExperimental62Packet
-        | 63 -> PrivateOrExperimental63Packet
-        | _ -> raise UnknownPacketTagException
-
-type internal LengthType = 
+type internal NewLengthType = 
     | OneOctetLength of int
     | TwoOctetLength of int
     | FiveOctetLength of int
     | PartialBodyLength of int
     with
-    static member Read (octet : int) : LengthType =
+    static member Read (octet : int) : NewLengthType =
         if octet < 192 then OneOctetLength octet
         elif octet < 223 then TwoOctetLength octet
         elif octet < 255 then PartialBodyLength octet
@@ -111,9 +64,146 @@ type internal OldLengthType =
              input.ReadByte())
         (firstOctet <<< 24) ||| (secondOctet <<< 16) ||| (thirdOctet <<< 8) ||| fourthOctet
 
+type internal PacketTagError =
+    | PacketTagReadError of BinaryReadError
+    | UnknownPacketTagError of int
+    | UnknownHeaderFormat
+
+type internal PacketTag = { PacketType: PacketType; PacketHeaderFormat: PacketHeaderFormat option}
+
+module internal PacketTag =
+    let initial = { PacketType = UnknownPacketType 0; PacketHeaderFormat = None }
+
+    let validatePacketType (packetTag, errorOption) =
+        match errorOption with
+        | None ->
+            let { PacketType = packetType } = packetTag
+            match packetType with
+            | UnknownPacketType n -> (packetTag, Some (UnknownPacketTagError n))
+            | _ -> (packetTag, None)
+        | Some error -> (packetTag, Some error)
+
+    let validateHeaderFormat (packetTag, errorOption) =
+        match errorOption with
+        | None ->
+            let { PacketHeaderFormat = headerFormat } = packetTag
+            match headerFormat with
+            | Some _ -> (packetTag, None)
+            | None -> (packetTag, Some UnknownHeaderFormat)
+        | Some error -> (packetTag, Some error)
+
+    let validatePacketTag packetTag =
+        (packetTag, None) |> validatePacketType |> validateHeaderFormat    
+
+    let parseHeaderFormat (tag, header) =
+        match (0b01000000 &&& tag) with
+        | 0 -> tag, { header with PacketHeaderFormat = Some OldFormat }
+        | _ -> tag, { header with PacketHeaderFormat = Some NewFormat }
+
+    let parsePacketType (tag, header) =
+        let { PacketHeaderFormat = headerFormat } = header
+        match headerFormat with    
+        | Some NewFormat -> tag, { header with PacketType = PacketType.ofInt (tag &&& 0b00111111) }
+        | Some OldFormat -> tag, { header with PacketType = PacketType.ofInt ((tag &&& 0b00111100) >>> 2) }
+        | None -> tag, header
+
+    let parsePacketTag tag =
+        let (_, packetTag) =
+            (tag, initial) |> parseHeaderFormat |> parsePacketType
+        packetTag        
+
+    let parser =
+        Parser.unit (initial, None)
+        |> BinaryParsers.uint8Reader (fun _ n -> parsePacketTag n) PacketTagReadError
+        |> Parser.map (ParseResult.mapResult validatePacketTag)
+
+type internal NewLengthType2 =
+    | OneOctetLength
+    | TwoOctetLength
+    | FiveOctetLength
+    | PartialBodyLength
+
+type internal  NewPacketLengthOctets =
+    { Octets: int list
+      LengthType: NewLengthType2 option; }
+
+type internal NewPacketLengthOctetsError =
+    | FirstOctetReadFailed of BinaryReadError
+    | SecondOctetReadFailed of BinaryReadError
+    | ThirdOctetReadFailed of BinaryReadError
+    | FourthOctetReadFailed of BinaryReadError
+    | FifthOctetReadFailed of BinaryReadError
+    | UnknownLengthType
+
+module internal NewPacketLength =
+    let initial =
+        { Octets = []; LengthType = None; }
+
+    let parseLengthType octet =    
+        if octet < 192 then Some OneOctetLength
+        elif octet < 223 then Some TwoOctetLength
+        elif octet < 255 then Some PartialBodyLength
+        elif octet = 255 then Some FiveOctetLength
+        else None
+
+    let appendOctetReader errorType =
+        BinaryParsers.uint8Reader
+            (fun lengthOctets octet ->
+                { lengthOctets with Octets = (octet :: lengthOctets.Octets) })
+            errorType
+
+    let twoOctetLengthParser lengthOctets =
+        Parser.unit (lengthOctets, None)
+        |> appendOctetReader SecondOctetReadFailed
+
+    let fiveOctetLengthParser lengthOctets =
+        Parser.unit (lengthOctets, None)
+        |> appendOctetReader SecondOctetReadFailed
+        |> appendOctetReader ThirdOctetReadFailed
+        |> appendOctetReader FourthOctetReadFailed
+        |> appendOctetReader FifthOctetReadFailed
+
+    let selectLengthOctetsParser lengthOctets =
+        let { LengthType = lengthType } = lengthOctets
+        match lengthType with
+        | Some TwoOctetLength -> twoOctetLengthParser lengthOctets
+        | Some FiveOctetLength -> fiveOctetLengthParser lengthOctets
+        | Some _ -> Parser.unit (lengthOctets, None)
+        | None -> Parser.unit (lengthOctets, Some UnknownLengthType)
+
+    let makeLengthOctetsParser =
+        let selectLengthOctetsParser lengthOctets =
+            let { LengthType = lengthType } = lengthOctets
+            match lengthType with
+            | Some TwoOctetLength -> twoOctetLengthParser lengthOctets
+            | Some FiveOctetLength -> fiveOctetLengthParser lengthOctets
+            | Some _ -> Parser.unit (lengthOctets, None)
+            | None -> Parser.unit (lengthOctets, Some UnknownLengthType)
+
+        let lengthOctetsParser state =
+            (ParseResult.bindf (fun lengthOctets ->
+                let (result, _) = Parser.run (selectLengthOctetsParser lengthOctets) state
+                result)),
+            state
+        Parser lengthOctetsParser
+
+    let parser =
+        Parser.unit (initial, None)
+        |> BinaryParsers.uint8Reader 
+            (fun lengthOctets octet -> 
+                { lengthOctets with Octets = [ octet ]; LengthType = parseLengthType octet })
+            FirstOctetReadFailed
+        |> Parser.apply makeLengthOctetsParser        
+
+type internal PacketLength = PacketLength of int option
+
+module internal PacketLength =
+    let initial =
+        PacketLength None
+
 type internal PacketHeader = 
     { 
-        PacketTag : PacketTag; 
+        PacketTag : PacketType; 
         Length : int 
     } with
     static member Read (input : Stream) =
@@ -129,16 +219,16 @@ type internal PacketHeader =
         | _ -> NewFormat
 
     static member ReadNewFormat (input : Stream) (packetTag : int) =
-        let (tag, lengthType) = (PacketTag.Read (packetTag &&& 0b00111111), LengthType.Read (input.ReadByte()))
+        let (tag, lengthType) = (PacketType.Read (packetTag &&& 0b00111111), NewLengthType.Read (input.ReadByte()))
         match lengthType with
-        | OneOctetLength octet -> { PacketTag = tag; Length = octet }
-        | TwoOctetLength octet -> { PacketTag = tag; Length = LengthType.ReadTwoOctet octet input }
-        | FiveOctetLength _ -> { PacketTag = tag; Length = LengthType.ReadFiveOctet input }
-        | PartialBodyLength _ -> raise UnsupportedLengthTypeException
+        | NewLengthType.OneOctetLength octet -> { PacketTag = tag; Length = octet }
+        | NewLengthType.TwoOctetLength octet -> { PacketTag = tag; Length = NewLengthType.ReadTwoOctet octet input }
+        | NewLengthType.FiveOctetLength _ -> { PacketTag = tag; Length = NewLengthType.ReadFiveOctet input }
+        | NewLengthType.PartialBodyLength _ -> raise UnsupportedLengthTypeException
 
     static member ReadOldFormat (input : Stream) (packetTag : int) =
         let (tag, lengthType) = 
-            (PacketTag.Read ((0b00111100 &&& packetTag) >>> 2), 
+            (PacketType.Read ((0b00111100 &&& packetTag) >>> 2), 
              OldLengthType.Read (0b00000011 &&& packetTag))
         match lengthType with
         | OldOneOctetLength -> { PacketTag = tag; Length = input.ReadByte() }

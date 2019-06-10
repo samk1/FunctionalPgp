@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Constants/PacketTags.fs" />
     <Compile Include="Constants/SymmetricKeyAlgorithms.fs" />
     <Compile Include="Constants/SignatureTypes.fs" />
     <Compile Include="Constants/PublicKeyAlgorithms.fs" />
