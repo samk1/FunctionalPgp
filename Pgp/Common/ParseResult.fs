@@ -29,6 +29,11 @@ module ParseResult =
         | ParseResult (result, None) -> ParseResult(fresult result, None)
         | ParseResult (result, Some error) -> ParseResult(fresult result, Some (ferror error))
 
+    let map2 onSuccess onError (ParseResult (result, errorOption)) =
+        match errorOption with
+        | None -> success (onSuccess result)
+        | Some error -> failure (onError error)
+
     let mapResult f (ParseResult (result, error)) =
         match error with
         | None -> ParseResult (f result)

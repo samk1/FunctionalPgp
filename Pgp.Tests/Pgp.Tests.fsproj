@@ -9,6 +9,8 @@
   <ItemGroup>
     <Compile Include="TestData.fs" />
     <Compile Include="ParserTests.fs" />
+    <Compile Include="PacketHeaderTestCases.fs" />
+    <Compile Include="PacketHeaderTests.fs" />
     <Compile Include="MPIntegerParserTests.fs" />
     <Compile Include="RsaPublicKeyParametersTests.fs" />
     <Compile Include="PublicKeyPacketTests.fs" />

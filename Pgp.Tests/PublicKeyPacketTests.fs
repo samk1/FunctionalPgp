@@ -35,8 +35,8 @@ module internal PublicKeyPacketTests =
 
     let parsePublicKeyPacket (data: byte[]) =
         let state = makeState data
-        let packetHeader = Pgp.PacketHeader.Read state.Stream
-        printfn "packet header: %A" packetHeader
+        let (result, state) = Parser.run Pgp.PacketHeader.parser state
+        printfn "packet header: %A" result
 
         let (result, _) = Parser.run PublicKey.parser state
         match result with

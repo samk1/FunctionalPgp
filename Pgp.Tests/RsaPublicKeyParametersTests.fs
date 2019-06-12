@@ -2,8 +2,8 @@ namespace Pgp.Tests
 
 open Fuchu
 open System.IO
-open Pgp.KeyMaterial
 open Pgp.Common
+open Pgp.KeyMaterial
 
 module RsaPublicKeyParametersTests =
     let rsaParametersStream ()

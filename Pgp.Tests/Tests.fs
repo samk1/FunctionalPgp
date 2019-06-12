@@ -23,4 +23,5 @@ module Tests =
         ParserTests.tests
         MPIntegerTests.tests
         PublicKeyPacketTests.tests
+        PacketHeaderTests.tests
     ]
